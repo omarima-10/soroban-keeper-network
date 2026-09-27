@@ -19,6 +19,10 @@
 //!   `sweep_fees`
 //! - Read-only views — `get_task`, `task_count`, `keeper_balance`,
 //!   `fees_accrued`, `is_paused`, etc.
+//! - Staking (E06, `docs/STAKING_DESIGN.md`): `stake_deposit`,
+//!   `initiate_unbond`/`withdraw_stake`, admin `slash` with a post-slash
+//!   `raise_slash_appeal`/`resolve_slash_appeal` window, and an optional
+//!   `set_min_stake` floor enforced by `claim_task`
 //!
 //! ## Where contributors come in
 //! The MVP is functional; the next 100 issues (0051–0150) are now published
@@ -49,6 +53,11 @@
 //! and not dispute-based — see `docs/STAKING_DESIGN.md` for the full design
 //! and the trade-offs behind that choice. Independent of task escrow and
 //! reward accounting; `claim_task`/`execute_task` behavior is unchanged.
+//! - Instance:   Admin, FeeBps, Paused, TaskCounter, RewardToken,
+//!   FeesAccrued, MinStake, SlashCounter
+//! - Persistent: Task(id) → Task struct, KeeperReward(address) → i128,
+//!   KeeperStake(address) → i128, UnbondRequest(address) → UnbondRequest,
+//!   Slash(id) → SlashRecord
 
 #![no_std]
 
@@ -61,6 +70,7 @@ mod errors;
 mod events;
 mod internal;
 mod staking;
+mod reputation;
 mod task;
 mod types;
 mod verifier;
@@ -70,6 +80,9 @@ pub use constants::*;
 pub use errors::KeeperError;
 pub use events::*;
 pub use types::{BatchTaskParams, DataKey, Task, TaskStatus, TaskType, UnbondRequest};
+pub use types::{BatchTaskParams, DataKey, SlashRecord, Task, TaskStatus, TaskType, UnbondRequest};
+pub use reputation::ReputationRecord;
+pub use types::{BatchTaskParams, DataKey, Task, TaskStatus, TaskType};
 pub use verifier::{IKeeperVerifier, KeeperVerifierClient};
 
 // Re-exported for the test and fuzz harnesses, which assert on the reward
